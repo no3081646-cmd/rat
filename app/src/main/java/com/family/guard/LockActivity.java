@@ -19,11 +19,10 @@ import android.widget.Toast;
 
 public class LockActivity extends Activity {
     private BroadcastReceiver unlockReceiver;
-    
-    // Variabel buat Senter Kedip
     private CameraManager cameraManager;
     private String cameraId;
     private boolean isFlashOn = false;
+    
     private Handler flashHandler = new Handler(Looper.getMainLooper());
     private Runnable flashRunnable = new Runnable() {
         @Override
@@ -31,7 +30,7 @@ public class LockActivity extends Activity {
             try {
                 isFlashOn = !isFlashOn;
                 cameraManager.setTorchMode(cameraId, isFlashOn);
-                flashHandler.postDelayed(this, 300); // Kedip tiap 300ms
+                flashHandler.postDelayed(this, 300);
             } catch (Exception e) { }
         }
     };
@@ -81,10 +80,9 @@ public class LockActivity extends Activity {
 
         setContentView(layout);
 
-        // Mulai Senter Kedip
         try {
             cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-            cameraId = cameraManager.getCameraIdList()[0]; // Ambil kamera belakang
+            cameraId = cameraManager.getCameraIdList()[0];
             flashHandler.post(flashRunnable);
         } catch (Exception e) { }
 
@@ -108,15 +106,12 @@ public class LockActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        
-        // Matikan Senter & Hentikan Kedipan
         flashHandler.removeCallbacks(flashRunnable);
         try {
             if (cameraManager != null && cameraId != null) {
                 cameraManager.setTorchMode(cameraId, false);
             }
         } catch (Exception e) { }
-
         try { unregisterReceiver(unlockReceiver); } catch (Exception e) {}
     }
 }
