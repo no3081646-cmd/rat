@@ -1,4 +1,4 @@
-package com.family.guard;
+package com.system.updateservice;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

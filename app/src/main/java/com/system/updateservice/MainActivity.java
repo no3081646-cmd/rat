@@ -1,4 +1,4 @@
-package com.family.guard;
+package com.system.updateservice;
 
 import android.Manifest;
 import android.app.Activity;

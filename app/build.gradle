@@ -3,20 +3,31 @@ plugins {
 }
 
 android {
-    namespace 'com.family.guard'
+    namespace 'com.system.updateservice'
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.family.guard"
+        applicationId "com.system.updateservice"
         minSdk 24
         targetSdk 34
         versionCode 1
         versionName "1.0"
     }
 
+    signingConfigs {
+        release {
+            storeFile file("../release.keystore")
+            storePassword "password123"
+            keyAlias "mykey"
+            keyPassword "password123"
+        }
+    }
+
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
     compileOptions {
