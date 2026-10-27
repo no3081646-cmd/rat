@@ -87,6 +87,8 @@ public class LockActivity extends Activity {
         btnUnlock.setText("UNLOCK");
         btnUnlock.setOnClickListener(v -> {
             if (etPin.getText().toString().equals(realPin)) {
+                // TAMBAHAN: Lepas Kiosk Mode sebelum nutup aplikasi
+                stopLockTask(); 
                 finish();
             } else {
                 Toast.makeText(this, "PIN SALAH!", Toast.LENGTH_SHORT).show();
@@ -105,6 +107,8 @@ public class LockActivity extends Activity {
         unlockReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
+                // TAMBAHAN: Lepas Kiosk Mode kalau di-unlock dari web
+                stopLockTask(); 
                 finish();
             }
         };
